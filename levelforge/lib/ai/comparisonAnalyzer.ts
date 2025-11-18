@@ -1,9 +1,8 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { Type } from '@google/genai';
+import { getAiInstance } from '../../services/geminiService';
 import { portfolioSchema, portfolioAnalysisPrompt, convertToPortfolioBlocks } from './portfolioGenerator';
 import type { Block, ComparisonPayload, ComparisonResult } from '../../types/portfolio';
 import { createHeading, createParagraph } from '../../types/portfolio';
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 const comparisonSchema = {
   type: Type.OBJECT,
@@ -39,6 +38,8 @@ const comparisonSchema = {
 
 
 export async function analyzeAndComparePortfolios(payload: ComparisonPayload): Promise<ComparisonResult> {
+    const ai = getAiInstance();
+
     // 1. Analyze each level individually and in parallel
     const portfolioPromises = payload.levels.map(async (level) => {
         // We need the raw JSON analysis, not the block structure for the comparison prompt

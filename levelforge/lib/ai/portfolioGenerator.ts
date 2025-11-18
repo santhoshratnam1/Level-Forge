@@ -1,5 +1,5 @@
-import { GoogleGenAI } from '@google/genai';
-import type { Block } from '@/types/portfolio';
+import { getAiInstance } from '../../services/geminiService';
+import type { Block } from '../../types/portfolio';
 import { 
   createHeading, 
   createParagraph, 
@@ -7,10 +7,8 @@ import {
   createCallout,
   createDivider,
   createColumns
-} from '@/types/portfolio';
+} from '../../types/portfolio';
 import { genres } from './genreTemplates';
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 // FIX: Export a general schema and prompt for use in other modules like the comparison analyzer.
 export const portfolioSchema = genres.general.schema;
@@ -25,6 +23,7 @@ export async function analyzeAndGeneratePortfolio(
   
   const template = genres[genre] || genres['general'];
   const { analysisPrompt, schema } = template;
+  const ai = getAiInstance();
 
   try {
     const response = await ai.models.generateContent({

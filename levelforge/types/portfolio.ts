@@ -211,3 +211,59 @@ export interface DesignChallenge {
   category: 'Navigation' | 'Pacing' | 'Combat' | 'Atmosphere' | 'General';
   status: ChallengeStatus;
 }
+
+// ============================================
+// Video Timeline Analysis Types
+// ============================================
+
+export interface ExtractedFrame {
+  timestamp: number; // in seconds
+  base64: string; // raw base64 data
+}
+
+export type TimelineEventType = 
+    | 'Combat' 
+    | 'Boss_Fight'
+    | 'Exploration' 
+    | 'Puzzle' 
+    | 'Narrative' 
+    | 'Player_Stuck' 
+    | 'Key_Moment' 
+    | 'Stealth'
+    | 'Traversal'
+    | 'Backtracking'
+    | 'Looting'
+    | 'Menu_UI'
+    | 'Death';
+
+export interface TimelineEvent {
+  timestamp: number; // in seconds
+  type: TimelineEventType;
+  title: string;
+  description: string;
+  intensity: number; // 0-10, for pacing curve
+}
+
+export interface PacingBreakdown {
+    combat: number; // percentage 0-100
+    exploration: number;
+    puzzle: number;
+    narrative: number;
+    idle: number;
+}
+
+export interface PacingAnalysis {
+    score: number; // 1-10
+    critique: string;
+    improvements: string[];
+    breakdown?: PacingBreakdown;
+}
+
+export interface VideoAnalysisResult {
+  summary: string; // High-level summary of the player's journey
+  pacing: PacingAnalysis;
+  events: TimelineEvent[];
+  frames: ExtractedFrame[]; // The frames that were sent for analysis
+  generatedAssets: GeneratedAsset[]; // Visual assets generated from video
+  videoUrl: string; // Object URL for the video player
+}

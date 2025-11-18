@@ -2,6 +2,26 @@ import * as jspdf from 'jspdf';
 import type { Block, GeneratedAsset, ChecklistState } from '../types/portfolio';
 import { checklistData } from '../data/checklistItems';
 
+// Image caching to avoid re-loading images multiple times
+const imageCache = new Map<string, HTMLImageElement>();
+
+const loadImage = (url: string): Promise<HTMLImageElement> => {
+  if (imageCache.has(url)) {
+    return Promise.resolve(imageCache.get(url)!);
+  }
+  
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      imageCache.set(url, img);
+      resolve(img);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+};
+
 // A debounced function to avoid generating PDFs multiple times on rapid clicks
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
     let timeout: number | undefined;
@@ -185,35 +205,49 @@ const exportToPdfInternal = async (
     doc.text('Generated Visual Assets', pageWidth / 2, cursorY, { align: 'center' });
     cursorY += 30;
 
-    for (const image of images) {
-        try {
-            const img = new Image();
-            img.src = image.url;
-            await new Promise(resolve => img.onload = resolve);
-            
-            const imgProps = doc.getImageProperties(image.url);
-            const aspectRatio = imgProps.width / imgProps.height;
-            const imgWidth = maxLineWidth * 0.8;
-            const imgHeight = imgWidth / aspectRatio;
+    // Pre-load all images in parallel
+    const imagePromises = images.map(image => loadImage(image.url));
+    const loadedImages = await Promise.allSettled(imagePromises);
 
-            addPageIfNeeded(imgHeight + 40);
+    for (let i = 0; i < images.length; i++) {
+      const result = loadedImages[i];
+      const image = images[i];
+      
+      if (result.status === 'rejected') {
+        console.error(`Could not add image ${image.title} to PDF:`, result.reason);
+        addPageIfNeeded(20);
+        doc.setTextColor(255, 0, 0);
+        doc.text(`Error: Could not load image "${image.title}"`, margin, cursorY);
+        doc.setTextColor(80, 80, 80);
+        cursorY += 20;
+        continue;
+      }
+      
+      try {
+        // Use the loaded image or the original url (since it's base64/url, jsPDF handles it if we confirmed it loads)
+        const imgProps = doc.getImageProperties(image.url);
+        const aspectRatio = imgProps.width / imgProps.height;
+        const imgWidth = maxLineWidth * 0.8;
+        const imgHeight = imgWidth / aspectRatio;
 
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(80, 80, 80);
-            doc.text(image.title, pageWidth / 2, cursorY, { align: 'center' });
-            cursorY += 15;
+        addPageIfNeeded(imgHeight + 40);
 
-            doc.addImage(image.url, 'JPEG', (pageWidth - imgWidth) / 2, cursorY, imgWidth, imgHeight);
-            cursorY += imgHeight + 25;
-        } catch (e) {
-            console.error(`Could not add image ${image.title} to PDF:`, e);
-            addPageIfNeeded(20);
-            doc.setTextColor(255, 0, 0);
-            doc.text(`Error: Could not load image "${image.title}"`, margin, cursorY);
-            doc.setTextColor(80, 80, 80);
-            cursorY += 20;
-        }
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(80, 80, 80);
+        doc.text(image.title, pageWidth / 2, cursorY, { align: 'center' });
+        cursorY += 15;
+
+        doc.addImage(image.url, 'JPEG', (pageWidth - imgWidth) / 2, cursorY, imgWidth, imgHeight);
+        cursorY += imgHeight + 25;
+      } catch (e) {
+        console.error(`Could not add image ${image.title} to PDF:`, e);
+        addPageIfNeeded(20);
+        doc.setTextColor(255, 0, 0);
+        doc.text(`Error: Could not render image "${image.title}"`, margin, cursorY);
+        doc.setTextColor(80, 80, 80);
+        cursorY += 20;
+      }
     }
     
     addHeaderFooter();

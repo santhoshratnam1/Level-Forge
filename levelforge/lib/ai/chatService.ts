@@ -1,7 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 import type { Content } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+import { getAiInstance } from '../../services/geminiService';
 
 export async function getChatResponse(
   history: Content[],
@@ -19,6 +17,7 @@ ${context}
 `;
 
   try {
+    const ai = getAiInstance();
     const chat = ai.chats.create({
       model: 'gemini-2.5-flash',
       config: {

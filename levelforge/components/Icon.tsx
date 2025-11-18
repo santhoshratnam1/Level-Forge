@@ -8,7 +8,7 @@ export type IconName =
   | 'download' | 'compare' | 'undo' | 'trash' | 'help'
   // Genre Icons
   | 'general' | 'fps' | 'platformer' | 'puzzle' 
-  | 'racing' | 'open-world' | 'horror' | 'dropdown';
+  | 'racing' | 'open-world' | 'horror' | 'dropdown' | 'video';
 
 interface IconProps {
   name: IconName;
@@ -50,7 +50,8 @@ export const Icon: React.FC<IconProps> = ({ name, className }) => {
     racing: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v16h16V4H4zm2 2h2v2H6V6zm0 4h2v2H6v-2zm0 4h2v2H6v-2zm4-4h8v2h-8v-2zm0 4h8v2h-8v-2zm-4-8h12v2H6V6z" /></svg>,
     'open-world': <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0l-3-3m3 3l3-3m-3-12v6m-3-3h6" /></svg>,
     horror: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2c-3.87 0-7 3.13-7 7 0 2.25 1.06 4.25 2.7 5.56.09.08.18.17.26.25.1.1.18.2.28.3.4.4.8.8 1.2 1.2.4.4.8.8 1.2 1.2.1.1.2.18.3.28.08.08.17.17.25.26C9.75 20.94 10.75 22 12 22s2.25-1.06 3.56-2.7c.08-.09.17-.18.26-.26.1-.1.18-.2.28-.3.4-.4.8-.8 1.2-1.2.4-.4.8-.8 1.2-1.2.1-.1.2-.18.3-.28.08-.08.17-.17.25-.26C20.94 13.25 22 11.25 22 9c0-3.87-3.13-7-7-7zM9 13a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg>,
-    dropdown: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+    dropdown: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>,
+    video: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
   };
 
   return <div className={className}>{icons[name]}</div>;

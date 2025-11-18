@@ -1,7 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
+import { getAiInstance } from '../../services/geminiService';
 import type { DesignChallenge } from '../../types/portfolio';
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 const challengeSchema = {
   type: Type.OBJECT,
@@ -46,6 +45,7 @@ export async function generateDesignChallenges(analysisJson: any): Promise<Omit<
   `;
 
   try {
+    const ai = getAiInstance();
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [{ text: context }],

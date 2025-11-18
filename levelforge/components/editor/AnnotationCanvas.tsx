@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useRef, useEffect, useState, useImperativeHandle, forwardRef, useCallback } from 'react';
 import type { Annotation, AnnotationTool, Point } from '../../types/portfolio';
 
 interface AnnotationCanvasProps {
@@ -105,7 +105,8 @@ export const AnnotationCanvas = forwardRef<AnnotationCanvasHandle, AnnotationCan
             const { width, height } = entries[0].contentRect;
             canvas.width = width;
             canvas.height = height;
-            redrawCanvas();
+            // Note: redrawCanvas here will be stale if not updated, but typically resize happens less frequently than drawing.
+            // Since we rely on the reactive useEffect below, forcing a redraw here is just a fallback for layout shifts.
         });
 
         resizeObserver.observe(container);
@@ -113,22 +114,24 @@ export const AnnotationCanvas = forwardRef<AnnotationCanvasHandle, AnnotationCan
         return () => resizeObserver.unobserve(container);
     }, [imageUrl]);
     
-    useEffect(() => {
-        redrawCanvas();
-    }, [annotations]);
+    // Memoized redraw function to prevent unnecessary re-renders and provide stable reference for useEffect
+    const redrawCanvas = useCallback(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
     
-    const redrawCanvas = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        annotations.forEach(anno => drawAnnotation(ctx, anno));
-        if (isDrawing && currentDrawing) {
-            drawAnnotation(ctx, currentDrawing);
-        }
-    };
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      annotations.forEach(anno => drawAnnotation(ctx, anno));
+      if (isDrawing && currentDrawing) {
+        drawAnnotation(ctx, currentDrawing);
+      }
+    }, [annotations, isDrawing, currentDrawing]);
+    
+    // Automatically redraw whenever the drawing state or annotations change
+    useEffect(() => {
+      redrawCanvas();
+    }, [redrawCanvas]);
     
     const getCanvasPoint = (e: React.MouseEvent): Point => {
         const canvas = canvasRef.current;
@@ -156,7 +159,7 @@ export const AnnotationCanvas = forwardRef<AnnotationCanvasHandle, AnnotationCan
         if (!isDrawing || !currentDrawing) return;
         const currentPoint = getCanvasPoint(e);
         setCurrentDrawing(prev => ({...prev!, end: currentPoint}));
-        redrawCanvas();
+        // No need to call redrawCanvas() manually; useEffect handles it when currentDrawing updates.
     };
 
     const handleMouseUp = () => {

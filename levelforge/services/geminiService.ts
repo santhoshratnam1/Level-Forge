@@ -2,18 +2,25 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import { withTimeout } from '../utils/timeout';
 import { genres } from '../lib/ai/genreTemplates';
 
-// More robust validation
-if (!process.env.API_KEY) {
-  const errorMsg = 'API_KEY environment variable not set. Please ensure it is configured correctly.';
-  console.error(errorMsg);
-  throw new Error(errorMsg);
+// Lazily initialized AI instance
+let ai: GoogleGenAI | undefined;
+
+export function getAiInstance(): GoogleGenAI {
+  if (!ai) {
+    if (!process.env.API_KEY) {
+      const errorMsg = 'API_KEY environment variable not set. Please ensure it is configured correctly.';
+      console.error(errorMsg);
+      // This will be caught by the calling function and can be displayed to the user gracefully.
+      throw new Error(errorMsg);
+    }
+    if (process.env.API_KEY.length < 20) {
+      console.warn('API key seems unusually short. Please verify it is correct.');
+    }
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  }
+  return ai;
 }
 
-if (process.env.API_KEY.length < 20) {
-  console.warn('API key seems unusually short. Please verify it is correct.');
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Utility: Retry with exponential backoff
 async function retryWithBackoff<T>(
@@ -73,6 +80,7 @@ export const generateVisualAsset = async (
       retryWithBackoff(async () => {
         console.log(`Making API call for ${assetType}...`);
         
+        const ai = getAiInstance();
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash-image',
           contents: contents,

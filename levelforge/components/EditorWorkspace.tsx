@@ -10,11 +10,14 @@ import { DesignChecklist } from './DesignChecklist';
 import { useChecklist } from '../hooks/useChecklist';
 import { DesignChallenges } from './DesignChallenges';
 import { useChallenges } from '../hooks/useChallenges';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface EditorWorkspaceProps {
   initialBlocks: Block[];
   generatedImages: GeneratedAsset[];
   initialChallenges: DesignChallenge[] | null;
+  onGenerateAsset: (assetType: 'Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay') => void;
+  isGeneratingAsset: boolean;
 }
 
 export interface EditorWorkspaceHandle {
@@ -56,7 +59,7 @@ const AnnotationToolbar: React.FC<{
 
 type LeftPanelTab = 'portfolio' | 'checklist' | 'challenges';
 
-export const EditorWorkspace = forwardRef<EditorWorkspaceHandle, EditorWorkspaceProps>(({ initialBlocks, generatedImages, initialChallenges }, ref) => {
+export const EditorWorkspace = forwardRef<EditorWorkspaceHandle, EditorWorkspaceProps>(({ initialBlocks, generatedImages, initialChallenges, onGenerateAsset, isGeneratingAsset }, ref) => {
   const [activeImageTab, setActiveImageTab] = useState(0);
   const [leftPanelTab, setLeftPanelTab] = useState<LeftPanelTab>('portfolio');
   const { annotations, addAnnotation, undoAnnotation, clearAnnotations, activeTool, setActiveTool } = useAnnotations();
@@ -150,6 +153,17 @@ export const EditorWorkspace = forwardRef<EditorWorkspaceHandle, EditorWorkspace
         <div className="flex-grow flex flex-col">
             <GlassCard className="flex-grow flex flex-col">
                 <div className="p-4 border-b border-white/10">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-semibold text-lg text-white">Visual Assets</h3>
+                        <button
+                            onClick={() => onGenerateAsset('Combat analysis overlay')}
+                            disabled={isGeneratingAsset}
+                            className="px-3 py-1.5 bg-white/10 border border-white/20 rounded-xl text-sm backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-wait"
+                        >
+                            <Icon name="logo" className={`w-4 h-4 ${isGeneratingAsset ? 'animate-spin' : ''}`} />
+                            <span>{isGeneratingAsset ? 'Generating...' : 'Generate Combat Overlay'}</span>
+                        </button>
+                    </div>
                     <div className="flex space-x-2 overflow-x-auto pb-2">
                         {generatedImages.map((image, index) => (
                         <button
@@ -165,9 +179,13 @@ export const EditorWorkspace = forwardRef<EditorWorkspaceHandle, EditorWorkspace
                     </div>
                 </div>
                 <div className="flex-grow p-4 flex flex-col items-center justify-center min-h-0 relative">
+                    {isGeneratingAsset && (
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                            <LoadingSpinner message="Generating combat overlay..." />
+                        </div>
+                    )}
                     {generatedImages[activeImageTab] && (
                         <AnnotationCanvas
-                            // FIX: Corrected ref assignment in callback to prevent returning a value, which is invalid for a ref callback.
                             ref={el => { canvasRefs.current[activeImageTab] = el; }}
                             imageUrl={generatedImages[activeImageTab].url}
                             activeTool={activeTool}
