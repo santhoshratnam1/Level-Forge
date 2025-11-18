@@ -9,92 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      :root {
-        /* Color Tokens */
-        --color-cyan-500: #06b6d4;
-        --color-cyan-300: #67e8f9;
-        --color-blue-600: #2563eb;
-        --color-purple-500: #a855f7;
-        --color-green-500: #22c55e;
-        --color-red-400: #f87171;
-
-        /* Light Theme */
-        --bg-primary-light: #f0f2f5;
-        --bg-secondary-light: #ffffff;
-        --surface-primary-light: #ffffff;
-        --surface-secondary-light: rgba(230, 230, 230, 0.5);
-        --text-primary-light: #1f2937;
-        --text-secondary-light: #6b7280;
-        --border-primary-light: rgba(0, 0, 0, 0.1);
-        --shadow-light: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-
-        /* Dark Theme */
-        --bg-primary-dark: #0a0a0f;
-        --bg-secondary-dark: #111118;
-        --surface-primary-dark: rgba(0, 0, 0, 0.3);
-        --surface-secondary-dark: rgba(255, 255, 255, 0.05);
-        --text-primary-dark: #e5e7eb;
-        --text-secondary-dark: #9ca3af;
-        --border-primary-dark: rgba(255, 255, 255, 0.1);
-        --shadow-dark: 0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -4px rgba(0,0,0,0.3);
-      }
-      
-      html[data-theme='light'] {
-        --bg-primary: var(--bg-primary-light);
-        --bg-secondary: var(--bg-secondary-light);
-        --surface-primary: var(--surface-primary-light);
-        --surface-secondary: var(--surface-secondary-light);
-        --text-primary: var(--text-primary-light);
-        --text-secondary: var(--text-secondary-light);
-        --border-primary: var(--border-primary-light);
-        --shadow-color: var(--shadow-light);
-      }
-
-      html[data-theme='dark'] {
-        --bg-primary: var(--bg-primary-dark);
-        --bg-secondary: var(--bg-secondary-dark);
-        --surface-primary: var(--surface-primary-dark);
-        --surface-secondary: var(--surface-secondary-dark);
-        --text-primary: var(--text-primary-dark);
-        --text-secondary: var(--text-secondary-dark);
-        --border-primary: var(--border-primary-dark);
-        --shadow-color: var(--shadow-dark);
-      }
-
-      html[data-accent='cyan'] { --accent-primary: var(--color-cyan-500); --accent-secondary: var(--color-blue-600); --accent-text: var(--color-cyan-300); }
-      html[data-accent='purple'] { --accent-primary: var(--color-purple-500); --accent-secondary: #d946ef; --accent-text: #e9d5ff; }
-      html[data-accent='green'] { --accent-primary: var(--color-green-500); --accent-secondary: #16a34a; --accent-text: #86efac; }
-      
-      html[data-density='compact'] { --padding-card: 1rem; --padding-form: 0.5rem; --text-size: 0.875rem; }
-      html[data-density='comfortable'] { --padding-card: 2rem; --padding-form: 0.75rem; --text-size: 1rem; }
-      html[data-density='spacious'] { --padding-card: 2.5rem; --padding-form: 1rem; --text-size: 1.125rem; }
-
       body {
         font-family: 'Inter', sans-serif;
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-        font-size: var(--text-size);
-        transition: background-color 0.3s ease, color 0.3s ease;
       }
-      .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(128, 128, 128, 0.3); border-radius: 4px; }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(128, 128, 128, 0.5); }
     </style>
-    <script>
-      (function() {
-        try {
-          const theme = localStorage.getItem('level-forge-theme') || 'dark';
-          const accent = localStorage.getItem('level-forge-accent') || 'cyan';
-          const density = localStorage.getItem('level-forge-density') || 'comfortable';
-          document.documentElement.setAttribute('data-theme', theme);
-          document.documentElement.setAttribute('data-accent', accent);
-          document.documentElement.setAttribute('data-density', density);
-        } catch (e) {
-          console.error("Failed to load theme from localStorage", e);
-        }
-      })();
-    </script>
   <script type="importmap">
 {
   "imports": {

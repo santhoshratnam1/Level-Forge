@@ -41,13 +41,8 @@ async function retryWithBackoff<T>(
   throw lastError!;
 }
 
-type VisualInput = 
-  | { images: { imageData: string; mimeType: string }[] }
-  | { analysisData: any };
-
-
 export const generateVisualAsset = async (
-  input: VisualInput,
+  input: { base64Data: string; mimeType: string } | { analysisData: any },
   assetType: 'Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay',
   genre: string
 ): Promise<string> => {
@@ -59,20 +54,18 @@ export const generateVisualAsset = async (
   let prompt: string;
   let contents: { parts: ({ text: string } | { inlineData: { data: string; mimeType: string } })[] };
 
-  if ('images' in input && input.images.length > 0) {
-    const imageParts = input.images.map(img => ({
-      inlineData: { data: img.imageData, mimeType: img.mimeType }
-    }));
-    prompt = `From these ${input.images.length} screenshots of the same level, ${template.visualPrompts.image[assetType]}`;
+  if ('base64Data' in input) {
+    prompt = template.visualPrompts.image[assetType];
     contents = {
-      parts: [ ...imageParts, { text: prompt } ],
+      parts: [
+        { inlineData: { data: input.base64Data, mimeType: input.mimeType } },
+        { text: prompt },
+      ],
     };
-  } else if ('analysisData' in input) {
+  } else {
     const analysisText = `Here is a JSON representation of a level design analysis:\n\n${JSON.stringify(input.analysisData, null, 2)}`;
     prompt = `${template.visualPrompts.text[assetType]}\n\n${analysisText}`;
     contents = { parts: [{ text: prompt }] };
-  } else {
-    throw new Error("Invalid input for generateVisualAsset. Provide either images or analysis data.");
   }
   
   try {

@@ -30,31 +30,31 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({ selectedGenre, onS
 
   return (
     <div className="relative w-full max-w-sm mx-auto" ref={dropdownRef}>
-        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2 text-left">Analysis Template</label>
+        <label className="block text-sm font-medium text-gray-400 mb-2 text-left">Analysis Template</label>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 bg-[var(--surface-secondary)] border border-[var(--border-primary)] rounded-xl text-left"
+        className="w-full flex items-center justify-between p-3 bg-white/5 border border-white/20 rounded-xl text-left"
       >
         <div className="flex items-center space-x-3">
-          <Icon name={currentGenre.icon} className="w-6 h-6 text-[var(--accent-text)]" />
-          <span className="font-semibold">{currentGenre.name}</span>
+          <Icon name={currentGenre.icon} className="w-6 h-6 text-cyan-300" />
+          <span className="font-semibold text-white">{currentGenre.name}</span>
         </div>
-        <Icon name="dropdown" className={`w-5 h-5 text-[var(--text-secondary)] transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
+        <Icon name="dropdown" className={`w-5 h-5 text-gray-400 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 top-full mt-2 w-full bg-[var(--bg-secondary)]/80 backdrop-blur-lg border border-[var(--border-primary)] rounded-xl shadow-2xl overflow-hidden animate-fade-in-down">
+        <div className="absolute z-10 top-full mt-2 w-full bg-gray-900/80 backdrop-blur-lg border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-fade-in-down">
           <ul className="max-h-60 overflow-y-auto p-1">
             {Object.entries(genres).map(([key, genre]) => (
               <li key={key}>
                 <button
                   onClick={() => handleSelect(key)}
-                  className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-colors ${selectedGenre === key ? 'bg-[var(--accent-primary)]/20' : 'hover:bg-[var(--surface-secondary)]'}`}
+                  className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-colors ${selectedGenre === key ? 'bg-cyan-500/20' : 'hover:bg-white/10'}`}
                 >
-                  <Icon name={genre.icon} className="w-6 h-6 text-[var(--accent-text)] flex-shrink-0" />
+                  <Icon name={genre.icon} className="w-6 h-6 text-cyan-300 flex-shrink-0" />
                   <div>
-                      <p className="font-semibold">{genre.name}</p>
-                      <p className="text-xs text-[var(--text-secondary)]">{genre.description}</p>
+                      <p className="font-semibold text-white">{genre.name}</p>
+                      <p className="text-xs text-gray-400">{genre.description}</p>
                   </div>
                 </button>
               </li>

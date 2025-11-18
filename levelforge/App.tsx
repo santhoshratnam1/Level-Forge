@@ -10,9 +10,6 @@ import type { Block, GeneratedAsset, ComparisonPayload, ComparisonResult } from 
 import { Icon } from './components/Icon';
 import { processFileUpload } from './utils/fileProcessor';
 import { exportToPdf } from './utils/pdfExporter';
-import { SettingsPanel } from './components/SettingsPanel';
-import { useTheme } from './hooks/useTheme';
-
 
 type AppMode = 'single' | 'compare';
 
@@ -23,8 +20,6 @@ const App: React.FC = () => {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [progress, setProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const { theme } = useTheme();
   
   // State for single mode
   const [portfolioBlocks, setPortfolioBlocks] = useState<Block[] | null>(null);
@@ -58,51 +53,40 @@ const App: React.FC = () => {
     setError(null);
   };
 
-  const handleProcessSingleFiles = async (files: File[], selectedGenre: string) => {
+  const handleProcessSingleFile = async (file: File, selectedGenre: string) => {
     try {
-      // Step 1: Process Files
-      setLoadingMessage(`📄 Processing ${files.length} file(s)...`);
+      // Step 1: Process File
+      setLoadingMessage('📄 Processing your level file...');
       setProgress(5);
-      const processedFiles = await Promise.all(files.map(processFileUpload));
-      
-      const visualFiles = processedFiles.filter(pf => pf.isVisual);
-
-      if (processedFiles.length === 0) {
-        throw new Error("No valid files found to analyze.");
-      }
+      const processedFile = await processFileUpload(file);
+      const { base64, mimeType, isVisual } = processedFile;
 
       // Step 2: AI Analysis
       setLoadingMessage('🔍 Analyzing using genre-specific framework...');
       setProgress(15);
-      const analysisResult = await analyzeAndGeneratePortfolio(processedFiles, selectedGenre);
+      const analysisResult = await analyzeAndGeneratePortfolio(base64, mimeType, selectedGenre);
       setPortfolioBlocks(analysisResult);
       console.log('✓ Professional analysis complete');
-      
-      // Step 3: Generate Visual Assets (only if visual files were provided)
-      if (visualFiles.length > 0) {
-        const imageParts = visualFiles.map(pf => ({ imageData: pf.base64, mimeType: pf.mimeType }));
-        
-        const assetsToGenerate: ('Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay')[] = [
-          'Top-down whitebox map', 'Player flow diagram', 'Combat analysis overlay', 'Flow & Loops Overlay'
-        ];
-        const loadingMessages = [
-          '🗺️ Generating top-down whitebox map (1/4)...',
-          '🌊 Creating player flow & navigation diagram (2/4)...',
-          '⚔️ Analyzing combat spaces & encounters (3/4)...',
-          '🔄 Mapping pacing, loops & shortcuts (4/4)...'
-        ];
-        const progressSteps = [30, 50, 70, 90];
-        const titles = ['Top-Down Map', 'Flow Diagram', 'Combat Areas', 'Pacing & Loops'];
 
-        for (let i = 0; i < assetsToGenerate.length; i++) {
-          setLoadingMessage(loadingMessages[i]);
-          setProgress(progressSteps[i]);
-          const image = await generateVisualAsset({ images: imageParts }, assetsToGenerate[i], selectedGenre);
-          setGeneratedImages(prev => [...prev, { title: titles[i], url: image }]);
-        }
-      } else {
-        console.log('No visual files provided, skipping diagram generation.');
-        setProgress(90); // Skip progress to near the end
+      const visualInput = isVisual ? { base64Data: base64, mimeType } : { analysisData: analysisResult };
+      
+      const assetsToGenerate: ('Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay')[] = [
+        'Top-down whitebox map', 'Player flow diagram', 'Combat analysis overlay', 'Flow & Loops Overlay'
+      ];
+      const loadingMessages = [
+        '🗺️ Generating top-down whitebox map (1/4)...',
+        '🌊 Creating player flow & navigation diagram (2/4)...',
+        '⚔️ Analyzing combat spaces & encounters (3/4)...',
+        '🔄 Mapping pacing, loops & shortcuts (4/4)...'
+      ];
+      const progressSteps = [30, 50, 70, 90];
+      const titles = ['Top-Down Map', 'Flow Diagram', 'Combat Areas', 'Pacing & Loops'];
+
+      for (let i = 0; i < assetsToGenerate.length; i++) {
+        setLoadingMessage(loadingMessages[i]);
+        setProgress(progressSteps[i]);
+        const image = await generateVisualAsset(visualInput, assetsToGenerate[i], selectedGenre);
+        setGeneratedImages(prev => [...prev, { title: titles[i], url: image }]);
       }
       
       setLoadingMessage('✨ Portfolio complete!');
@@ -113,7 +97,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleProcessComparisonFiles = async (filesToProcess: File[]) => {
+  const handleProcessMultipleFiles = async (filesToProcess: File[]) => {
     try {
         setLoadingMessage(`📄 Processing ${filesToProcess.length} level files...`);
         setProgress(5);
@@ -159,10 +143,10 @@ const App: React.FC = () => {
     setComparisonResult(null);
 
     try {
-      if (mode === 'single' && files.length > 0) {
-        await handleProcessSingleFiles(files, genre);
+      if (mode === 'single' && files[0]) {
+        await handleProcessSingleFile(files[0], genre);
       } else if (mode === 'compare' && files.length > 1) {
-        await handleProcessComparisonFiles(files);
+        await handleProcessMultipleFiles(files);
       } else {
         throw new Error('Invalid mode or file selection.');
       }
@@ -192,52 +176,41 @@ const App: React.FC = () => {
   const hasResult = portfolioBlocks || comparisonResult;
 
   return (
-    <div className="min-h-screen w-full bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-hidden relative transition-colors duration-300">
+    <div className="min-h-screen w-full bg-[#0a0a0f] text-gray-200 overflow-hidden relative">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className={`absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full filter blur-3xl animate-blob ${theme === 'dark' ? 'bg-purple-600/30' : 'bg-purple-300/40'}`}></div>
-        <div className={`absolute top-[10%] right-[-10%] w-[600px] h-[600px] rounded-full filter blur-3xl animate-blob animation-delay-2000 ${theme === 'dark' ? 'bg-cyan-600/30' : 'bg-cyan-300/40'}`}></div>
-        <div className={`absolute bottom-[-20%] left-[20%] w-[400px] h-[400px] rounded-full filter blur-3xl animate-blob animation-delay-4000 ${theme === 'dark' ? 'bg-blue-600/30' : 'bg-blue-300/40'}`}></div>
+        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-600/30 rounded-full filter blur-3xl animate-blob"></div>
+        <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-cyan-600/30 rounded-full filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-[400px] h-[400px] bg-blue-600/30 rounded-full filter blur-3xl animate-blob animation-delay-4000"></div>
       </div>
 
       <main className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
         <header className="w-full max-w-7xl mx-auto flex justify-between items-center p-4">
            <div className="flex items-center space-x-3">
-             <Icon name="logo" className="h-10 w-10 text-[var(--accent-primary)]" />
-             <h1 className="text-3xl font-bold tracking-wider">LevelForge</h1>
+             <Icon name="logo" className="h-10 w-10 text-cyan-400" />
+             <h1 className="text-3xl font-bold text-white tracking-wider">LevelForge</h1>
            </div>
-           <div className="flex items-center space-x-2">
-             {hasResult && (
-               <>
-                  {portfolioBlocks && (
-                      <button
-                          onClick={handleDownloadPdf}
-                          disabled={isGeneratingPdf}
-                          className="px-4 py-2 bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-xl backdrop-blur-md hover:bg-[var(--surface-secondary)] transition-colors duration-300 flex items-center space-x-2 disabled:opacity-50"
-                      >
-                          <Icon name="download" className="w-5 h-5" />
-                          <span>{isGeneratingPdf ? 'Generating...' : 'Download PDF'}</span>
-                      </button>
-                  )}
-                 <button
-                   onClick={resetState}
-                   className="px-4 py-2 bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-xl backdrop-blur-md hover:bg-[var(--surface-secondary)] transition-colors duration-300 flex items-center space-x-2"
-                 >
-                   <Icon name="plus" className="w-5 h-5" />
-                   <span>New Project</span>
-                 </button>
-               </>
-             )}
-             <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="p-2 bg-[var(--surface-primary)] border border-[var(--border-primary)] rounded-xl backdrop-blur-md hover:bg-[var(--surface-secondary)] transition-colors duration-300"
-                aria-label="Open settings"
-             >
-                <Icon name="settings" className="w-5 h-5"/>
-             </button>
-           </div>
+           {hasResult && (
+             <div className="flex items-center space-x-2">
+                {portfolioBlocks && (
+                    <button
+                        onClick={handleDownloadPdf}
+                        disabled={isGeneratingPdf}
+                        className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2 disabled:opacity-50"
+                    >
+                        <Icon name="download" className="w-5 h-5" />
+                        <span>{isGeneratingPdf ? 'Generating...' : 'Download PDF'}</span>
+                    </button>
+                )}
+               <button
+                 onClick={resetState}
+                 className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2"
+               >
+                 <Icon name="plus" className="w-5 h-5" />
+                 <span>New Project</span>
+               </button>
+             </div>
+           )}
         </header>
-        
-        <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center flex-grow">

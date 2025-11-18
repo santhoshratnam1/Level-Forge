@@ -23,18 +23,19 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message, progres
             stroke="currentColor"
             strokeWidth="8"
             fill="transparent"
-            className="text-[var(--border-primary)]"
+            className="text-gray-700/50"
           />
           {/* Progress circle */}
           <circle
             cx="64"
             cy="64"
             r={radius}
-            stroke="var(--accent-primary)"
+            stroke="currentColor"
             strokeWidth="8"
             fill="transparent"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
+            className="text-cyan-400"
             strokeLinecap="round"
             style={{ transition: 'stroke-dashoffset 0.35s ease-out' }}
           />
@@ -42,27 +43,27 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message, progres
         
         {/* Spinning center */}
         <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-12 w-12 border-2 border-[var(--accent-primary)]/30 rounded-full animate-spin"></div>
+            <div className="h-12 w-12 border-2 border-cyan-500/30 rounded-full animate-spin"></div>
         </div>
         
         {/* Progress percentage */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold text-[var(--accent-text)]">{Math.round(progress)}%</span>
+          <span className="text-2xl font-bold text-cyan-400">{Math.round(progress)}%</span>
         </div>
       </div>
 
       {/* Message */}
       {message && (
         <div className="text-center space-y-2">
-          <p className="text-lg font-medium text-[var(--text-primary)] max-w-sm">{message}</p>
-          <p className="text-sm text-[var(--text-secondary)]">This may take 1-2 minutes...</p>
+          <p className="text-lg font-medium text-gray-200 max-w-sm">{message}</p>
+          <p className="text-sm text-gray-500">This may take 1-2 minutes...</p>
         </div>
       )}
 
       {/* Progress bar */}
-      <div className="w-80 h-2 bg-[var(--surface-secondary)] rounded-full overflow-hidden">
+      <div className="w-80 h-2 bg-gray-800 rounded-full overflow-hidden">
         <div 
-          className="h-full bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-secondary)] to-[var(--accent-primary)]"
+          className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500"
           style={{ width: `${progress}%`, transition: 'width 0.35s ease-out' }}
         />
       </div>

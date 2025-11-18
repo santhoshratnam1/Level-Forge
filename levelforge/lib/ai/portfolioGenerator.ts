@@ -9,7 +9,6 @@ import {
   createColumns
 } from '@/types/portfolio';
 import { genres } from './genreTemplates';
-import type { ProcessedFile } from '../../utils/fileProcessor';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
@@ -19,42 +18,23 @@ export const portfolioAnalysisPrompt = genres.general.analysisPrompt;
 
 
 export async function analyzeAndGeneratePortfolio(
-  files: ProcessedFile[],
+  imageData: string,
+  mimeType: string,
   genre: string
 ): Promise<Block[]> {
   
   const template = genres[genre] || genres['general'];
   const { analysisPrompt, schema } = template;
 
-  const fileParts = files.map(file => ({
-    inlineData: { mimeType: file.mimeType, data: file.base64 }
-  }));
-
-  const visualFiles = files.filter(f => f.isVisual);
-  const docFiles = files.filter(f => !f.isVisual);
-
-  let promptContext = '';
-  if (visualFiles.length > 0 && docFiles.length > 0) {
-    promptContext = `Analyze these ${visualFiles.length} visual references (screenshots/video frames) and ${docFiles.length} design document(s). Synthesize information from all sources for a holistic analysis.`;
-  } else if (visualFiles.length > 0) {
-    promptContext = `Analyze these ${visualFiles.length} screenshots/video frames, which are all from the SAME level, providing a holistic view.`;
-  } else if (docFiles.length > 0) {
-    promptContext = `Analyze the provided design document(s) to create a detailed level design portfolio.`;
-  } else {
-    throw new Error('No files provided for analysis.');
-  }
-
-  const fullPrompt = `You are a senior level designer conducting a professional portfolio-quality analysis using the "In Pursuit of Better Levels" framework. ${promptContext} Provide actionable insights. Respond ONLY with valid JSON matching the schema. Each string field should be 2-4 sentences. Each array should have 3-5 detailed items.`
-
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
-      contents: [{
+      contents: {
         parts: [
-          ...fileParts,
-          { text: fullPrompt }
+          { inlineData: { mimeType, data: imageData } },
+          { text: analysisPrompt }
         ]
-      }],
+      },
       config: {
         responseMimeType: 'application/json',
         responseSchema: schema,
@@ -74,20 +54,8 @@ export async function analyzeAndGeneratePortfolio(
     if (!analysis.planning) {
       throw new Error('AI response missing required sections');
     }
-    
-    // Prepend a block indicating multi-file analysis
-    const contextDescription = `This analysis was generated from ${files.length} file(s) (${visualFiles.length} visual, ${docFiles.length} document) to provide a comprehensive understanding of the level.`;
-    const multiFileContextBlock = createCallout(
-        contextDescription,
-        '🔬 Multi-Source Analysis'
-    );
 
-    const portfolioBlocks = convertToPortfolioBlocks(analysis);
-    
-    // Insert the context block after the title and divider
-    portfolioBlocks.splice(2, 0, multiFileContextBlock);
-
-    return portfolioBlocks;
+    return convertToPortfolioBlocks(analysis);
   } catch (error) {
     console.error('Portfolio generation error:', error);
     

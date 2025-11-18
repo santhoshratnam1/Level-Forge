@@ -44,12 +44,12 @@ export async function analyzeAndComparePortfolios(payload: ComparisonPayload): P
         // We need the raw JSON analysis, not the block structure for the comparison prompt
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
-            contents: [{
+            contents: {
                 parts: [
                     { inlineData: { mimeType: level.mimeType, data: level.base64 } },
                     { text: portfolioAnalysisPrompt }
                 ]
-            }],
+            },
              config: { 
                 responseMimeType: 'application/json',
                 responseSchema: portfolioSchema,
@@ -82,7 +82,7 @@ export async function analyzeAndComparePortfolios(payload: ComparisonPayload): P
     // 2. Perform the comparative analysis
     const comparisonResponse = await ai.models.generateContent({
         model: 'gemini-2.5-pro',
-        contents: [{ parts: [{ text: comparisonPrompt }] }],
+        contents: [{ text: comparisonPrompt }],
         config: {
             responseMimeType: 'application/json',
             responseSchema: comparisonSchema,

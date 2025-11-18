@@ -30,18 +30,18 @@ const AnnotationToolbar: React.FC<{
                     <button 
                         key={tool} 
                         onClick={() => setActiveTool(tool)}
-                        className={`p-2 rounded-lg transition-colors ${activeTool === tool ? 'bg-[var(--accent-primary)]/50' : 'hover:bg-[var(--surface-secondary)]'}`} 
+                        className={`p-2 rounded-lg transition-colors ${activeTool === tool ? 'bg-cyan-500/50' : 'hover:bg-white/20'}`} 
                         aria-label={`${tool} tool`}
                     >
-                        <Icon name={tool} className="w-6 h-6 text-[var(--text-secondary)]" />
+                        <Icon name={tool} className="w-6 h-6 text-gray-300" />
                     </button>
                 ))}
-                <div className="h-6 w-px bg-[var(--border-primary)] mx-2" />
-                <button onClick={undo} className="p-2 rounded-lg hover:bg-[var(--surface-secondary)]" aria-label="Undo">
-                   <Icon name="undo" className="w-6 h-6 text-[var(--text-secondary)]" />
+                <div className="h-6 w-px bg-white/20 mx-2" />
+                <button onClick={undo} className="p-2 rounded-lg hover:bg-white/20" aria-label="Undo">
+                   <Icon name="undo" className="w-6 h-6 text-gray-300" />
                 </button>
-                 <button onClick={clear} className="p-2 rounded-lg hover:bg-[var(--surface-secondary)]" aria-label="Clear Annotations">
-                   <Icon name="trash" className="w-6 h-6 text-[var(--text-secondary)]" />
+                 <button onClick={clear} className="p-2 rounded-lg hover:bg-white/20" aria-label="Clear Annotations">
+                   <Icon name="trash" className="w-6 h-6 text-gray-300" />
                 </button>
             </div>
         </GlassCard>
@@ -98,14 +98,14 @@ export const EditorWorkspace = forwardRef<EditorWorkspaceHandle, EditorWorkspace
         </div>
         <div className="flex-grow flex flex-col">
             <GlassCard className="flex-grow flex flex-col">
-                <div className="p-4 border-b border-[var(--border-primary)]">
+                <div className="p-4 border-b border-white/10">
                     <div className="flex space-x-2 overflow-x-auto pb-2">
                         {generatedImages.map((image, index) => (
                         <button
                             key={index}
                             onClick={() => setActiveTab(index)}
                             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex-shrink-0 ${
-                            activeTab === index ? 'bg-[var(--accent-primary)]/30 text-[var(--accent-text)]' : 'text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]'
+                            activeTab === index ? 'bg-cyan-500/30 text-cyan-200' : 'text-gray-400 hover:bg-white/10'
                             }`}
                         >
                             {image.title}
