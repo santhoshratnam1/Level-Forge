@@ -12,7 +12,6 @@ if (process.env.API_KEY.length < 20) {
   console.warn('API key seems unusually short. Please verify it is correct.');
 }
 
-
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Utility: Retry with exponential backoff
@@ -28,7 +27,7 @@ async function retryWithBackoff<T>(
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      console.warn(`Attempt ${i + 1} failed:`, error);
+      console.warn(`Attempt ${i + 1}/${maxRetries} failed:`, error instanceof Error ? error.message : error);
       
       if (i < maxRetries - 1) {
         const delay = initialDelay * Math.pow(2, i);
@@ -45,7 +44,9 @@ export const generateVisualAsset = async (
   input: { base64Data: string; mimeType: string } | { analysisData: any },
   assetType: 'Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay'
 ): Promise<string> => {
-  const TIMEOUT = 90000; // 90 seconds for image generation
+  const TIMEOUT = 120000; // Increased to 120 seconds for image generation
+  
+  console.log(`Generating ${assetType}...`);
   
   let prompt: string;
   let contents: { parts: ({ text: string } | { inlineData: { data: string; mimeType: string } })[] };
@@ -92,26 +93,47 @@ export const generateVisualAsset = async (
     contents = { parts: [{ text: prompt }] };
   }
   
-  return withTimeout(
-    retryWithBackoff(async () => {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: contents,
-        config: {
-          responseModalities: [Modality.IMAGE],
-        },
-      });
+  try {
+    return await withTimeout(
+      retryWithBackoff(async () => {
+        console.log(`Making API call for ${assetType}...`);
+        
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: contents,
+          config: {
+            responseModalities: [Modality.IMAGE],
+          },
+        });
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64ImageData: string = part.inlineData.data;
-          return `data:image/png;base64,${base64ImageData}`;
+        console.log(`Received response for ${assetType}`);
+
+        // Check if we have candidates
+        if (!response.candidates || response.candidates.length === 0) {
+          throw new Error(`No candidates returned for ${assetType}`);
         }
-      }
 
-      throw new Error(`Image generation failed for ${assetType}.`);
-    }),
-    TIMEOUT,
-    `Image generation timed out after 90 seconds`
-  );
+        // Look for image data in the response
+        for (const part of response.candidates[0].content.parts) {
+          if (part.inlineData) {
+            const base64ImageData: string = part.inlineData.data;
+            console.log(`✓ Successfully generated ${assetType}`);
+            return `data:image/png;base64,${base64ImageData}`;
+          }
+        }
+
+        throw new Error(`No image data found in response for ${assetType}`);
+      }, 2), // Reduced retries to 2 to avoid excessive waiting
+      TIMEOUT,
+      `Image generation timed out after 120 seconds for ${assetType}`
+    );
+  } catch (error) {
+    console.error(`Error generating ${assetType}:`, error);
+    
+    // Return a placeholder or rethrow with more context
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate ${assetType}: ${error.message}`);
+    }
+    throw error;
+  }
 };

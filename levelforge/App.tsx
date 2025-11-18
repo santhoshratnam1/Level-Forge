@@ -44,56 +44,63 @@ const App: React.FC = () => {
     setGeneratedImages([]);
 
     try {
-      setLoadingMessage('📄 Processing file...');
+      // Step 1: Process File
+      setLoadingMessage('📄 Processing your level file...');
       setProgress(5);
       const processedFile = await processFileUpload(file);
       const { base64, mimeType, isVisual } = processedFile;
 
-      setLoadingMessage('🔍 Analyzing level & generating portfolio...');
-      setProgress(20);
+      // Step 2: AI Analysis
+      setLoadingMessage('🔍 Analyzing using "In Pursuit of Better Levels" framework...');
+      setProgress(15);
       const analysisResult = await analyzeAndGeneratePortfolio(base64, mimeType);
       setPortfolioBlocks(analysisResult);
-      console.log('✓ Analysis complete');
+      console.log('✓ Professional analysis complete');
 
       const visualInput = isVisual
         ? { base64Data: base64, mimeType }
         : { analysisData: analysisResult };
       
-      setLoadingMessage('🗺️ Generating top-down map... (2/5)');
-      setProgress(40);
+      // Step 3: Generate Top-Down Map
+      setLoadingMessage('🗺️ Generating top-down whitebox map (1/4)...');
+      setProgress(30);
       const mapImage = await generateVisualAsset(visualInput, 'Top-down whitebox map');
       setGeneratedImages(prev => [...prev, { title: 'Top-Down Map', url: mapImage }]);
       
-      setLoadingMessage('📊 Creating flow diagram... (3/5)');
-      setProgress(60);
+      // Step 4: Generate Flow Diagram
+      setLoadingMessage('🌊 Creating player flow & navigation diagram (2/4)...');
+      setProgress(50);
       const flowImage = await generateVisualAsset(visualInput, 'Player flow diagram');
       setGeneratedImages(prev => [...prev, { title: 'Flow Diagram', url: flowImage }]);
       
-      setLoadingMessage('⚔️ Analyzing combat areas... (4/5)');
-      setProgress(80);
+      // Step 5: Generate Combat Analysis
+      setLoadingMessage('⚔️ Analyzing combat spaces & encounters (3/4)...');
+      setProgress(70);
       const combatImage = await generateVisualAsset(visualInput, 'Combat analysis overlay');
       setGeneratedImages(prev => [...prev, { title: 'Combat Areas', url: combatImage }]);
       
-      setLoadingMessage('🔄 Visualizing loops & paths... (5/5)');
+      // Step 6: Generate Loops & Pacing
+      setLoadingMessage('🔄 Mapping pacing, loops & shortcuts (4/4)...');
       setProgress(90);
       const loopsImage = await generateVisualAsset(visualInput, 'Flow & Loops Overlay');
-      setGeneratedImages(prev => [...prev, { title: 'Flow & Loops', url: loopsImage }]);
+      setGeneratedImages(prev => [...prev, { title: 'Pacing & Loops', url: loopsImage }]);
       
-      setLoadingMessage('✨ Complete!');
+      setLoadingMessage('✨ Portfolio complete!');
       setProgress(100);
 
-      setTimeout(() => setIsLoading(false), 1000);
+      setTimeout(() => setIsLoading(false), 800);
 
     } catch (err) {
       console.error('Processing error:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setError(`Failed to process the file. ${errorMessage}`);
+      setError(`Failed to process the level. ${errorMessage}`);
       setIsLoading(false);
     }
   }, [file]);
   
   return (
     <div className="min-h-screen w-full bg-[#0a0a0f] text-gray-200 overflow-hidden relative">
+      {/* Animated Background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-600/30 rounded-full filter blur-3xl animate-blob"></div>
         <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-cyan-600/30 rounded-full filter blur-3xl animate-blob animation-delay-2000"></div>
@@ -101,6 +108,7 @@ const App: React.FC = () => {
       </div>
 
       <main className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+        {/* Header */}
         <header className="w-full max-w-7xl mx-auto flex justify-between items-center p-4">
            <div className="flex items-center space-x-3">
              <Icon name="logo" className="h-10 w-10 text-cyan-400" />
@@ -117,6 +125,7 @@ const App: React.FC = () => {
            )}
         </header>
 
+        {/* Main Content */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center flex-grow">
             <LoadingSpinner message={loadingMessage} progress={progress} />
