@@ -61,42 +61,48 @@ const App: React.FC = () => {
   const handleProcessSingleFiles = async (files: File[], selectedGenre: string) => {
     try {
       // Step 1: Process Files
-      setLoadingMessage(`📄 Processing ${files.length} screenshot(s)...`);
+      setLoadingMessage(`📄 Processing ${files.length} file(s)...`);
       setProgress(5);
       const processedFiles = await Promise.all(files.map(processFileUpload));
       
-      const imageParts = processedFiles
-        .filter(pf => pf.isVisual)
-        .map(pf => ({ imageData: pf.base64, mimeType: pf.mimeType }));
+      const visualFiles = processedFiles.filter(pf => pf.isVisual);
 
-      if (imageParts.length === 0) {
-        throw new Error("No valid images found to analyze.");
+      if (processedFiles.length === 0) {
+        throw new Error("No valid files found to analyze.");
       }
 
       // Step 2: AI Analysis
       setLoadingMessage('🔍 Analyzing using genre-specific framework...');
       setProgress(15);
-      const analysisResult = await analyzeAndGeneratePortfolio(imageParts, selectedGenre);
+      const analysisResult = await analyzeAndGeneratePortfolio(processedFiles, selectedGenre);
       setPortfolioBlocks(analysisResult);
       console.log('✓ Professional analysis complete');
       
-      const assetsToGenerate: ('Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay')[] = [
-        'Top-down whitebox map', 'Player flow diagram', 'Combat analysis overlay', 'Flow & Loops Overlay'
-      ];
-      const loadingMessages = [
-        '🗺️ Generating top-down whitebox map (1/4)...',
-        '🌊 Creating player flow & navigation diagram (2/4)...',
-        '⚔️ Analyzing combat spaces & encounters (3/4)...',
-        '🔄 Mapping pacing, loops & shortcuts (4/4)...'
-      ];
-      const progressSteps = [30, 50, 70, 90];
-      const titles = ['Top-Down Map', 'Flow Diagram', 'Combat Areas', 'Pacing & Loops'];
+      // Step 3: Generate Visual Assets (only if visual files were provided)
+      if (visualFiles.length > 0) {
+        const imageParts = visualFiles.map(pf => ({ imageData: pf.base64, mimeType: pf.mimeType }));
+        
+        const assetsToGenerate: ('Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay')[] = [
+          'Top-down whitebox map', 'Player flow diagram', 'Combat analysis overlay', 'Flow & Loops Overlay'
+        ];
+        const loadingMessages = [
+          '🗺️ Generating top-down whitebox map (1/4)...',
+          '🌊 Creating player flow & navigation diagram (2/4)...',
+          '⚔️ Analyzing combat spaces & encounters (3/4)...',
+          '🔄 Mapping pacing, loops & shortcuts (4/4)...'
+        ];
+        const progressSteps = [30, 50, 70, 90];
+        const titles = ['Top-Down Map', 'Flow Diagram', 'Combat Areas', 'Pacing & Loops'];
 
-      for (let i = 0; i < assetsToGenerate.length; i++) {
-        setLoadingMessage(loadingMessages[i]);
-        setProgress(progressSteps[i]);
-        const image = await generateVisualAsset({ images: imageParts }, assetsToGenerate[i], selectedGenre);
-        setGeneratedImages(prev => [...prev, { title: titles[i], url: image }]);
+        for (let i = 0; i < assetsToGenerate.length; i++) {
+          setLoadingMessage(loadingMessages[i]);
+          setProgress(progressSteps[i]);
+          const image = await generateVisualAsset({ images: imageParts }, assetsToGenerate[i], selectedGenre);
+          setGeneratedImages(prev => [...prev, { title: titles[i], url: image }]);
+        }
+      } else {
+        console.log('No visual files provided, skipping diagram generation.');
+        setProgress(90); // Skip progress to near the end
       }
       
       setLoadingMessage('✨ Portfolio complete!');

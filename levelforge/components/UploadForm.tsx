@@ -46,10 +46,10 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onFilesChange, onProcess
   const maxFiles = mode === 'compare' ? 3 : 5; // Allow up to 5 for single mode
   const canProcess = files.length >= minFiles && (mode === 'single' ? files.length <= maxFiles : files.length <= 3);
 
-  const singleModeTitle = "Upload 1-5 Screenshots";
-  const singleModeDescription = "The AI will analyze all images for a complete understanding.";
-  const compareModeTitle = "Upload 2-3 Levels";
-  const compareModeDescription = "The AI will compare each level file against the others.";
+  const singleModeTitle = "Upload Files (up to 5)";
+  const singleModeDescription = "Upload screenshots, videos, or design documents (.doc, .docx, .pdf). The AI will analyze all files for a complete understanding.";
+  const compareModeTitle = "Upload 2-3 Level Files";
+  const compareModeDescription = "The AI will compare each level file (image, video, or doc) against the others.";
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center flex-grow p-4">
@@ -79,8 +79,8 @@ export const UploadForm: React.FC<UploadFormProps> = ({ onFilesChange, onProcess
               ref={fileInputRef}
               onChange={(e) => onFileChange(e.target.files)}
               className="hidden"
-              accept="image/*,video/mp4,video/quicktime,application/pdf"
-              multiple={true} // Always allow multiple for simplicity, logic handles the rest
+              accept="image/*,video/mp4,video/quicktime,video/webm,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              multiple={true}
             />
             
             <div className="p-4 mb-6 border-2 border-dashed border-[var(--border-primary)] rounded-2xl bg-[var(--surface-secondary)] min-h-[56px] flex flex-col items-center justify-center space-y-2">
