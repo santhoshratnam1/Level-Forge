@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { RichTextEditor } from './RichTextEditor';
 import type { Block } from '../../types/portfolio';
 import { Icon } from '../Icon';
+import { HelpTooltip } from '../HelpTooltip';
+import { glossary } from '../../data/glossary';
 
 interface PortfolioSectionProps {
   block: Block;
@@ -9,6 +11,28 @@ interface PortfolioSectionProps {
   onDelete: () => void;
   onAddBelow: (type: string) => void;
 }
+
+// Map display text from the portfolio generator to keys in our glossary data
+const termMap: Record<string, keyof typeof glossary> = {
+    'Design Restrictions': 'design_restrictions',
+    'Design Goals': 'design_goals',
+    '⭐ Golden Path': 'golden_path',
+    '📍 Context': 'golden_path', // Context is closely related
+    'Landmarks & Orientation': 'landmarks',
+    'Signposting & Guidance': 'signposting',
+    'Visual Language': 'visual_language',
+    'Flow Structure': 'flow_structure',
+    'Gates & Valves': 'gates_valves',
+    'Loops & Shortcuts': 'loops_shortcuts',
+    '📊 Intensity Curve': 'intensity_curve',
+    'Encounter Design': 'encounter_design',
+    'Cover & Layout': 'cover_layout',
+    'Tactical Elements': 'tactical_elements',
+    'Environmental Storytelling': 'environmental_storytelling',
+    'Cognitive Load': 'cognitive_load',
+    'Risk vs. Reward': 'risk_reward',
+};
+
 
 export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
   block,
@@ -24,15 +48,23 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
       case 'heading_2':
       case 'heading_3':
         const sizeClass = block.type === 'heading_1' ? 'text-4xl' : block.type === 'heading_2' ? 'text-3xl' : 'text-2xl';
-        return (
-          <input
-            type="text"
-            value={block.content.text || ''}
-            onChange={(e) => onUpdate({ ...block.content, text: e.target.value })}
-            className={`${sizeClass} font-bold bg-transparent w-full focus:outline-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400`}
-            placeholder="Heading"
-          />
+        const headingText = block.content.text || '';
+        const headingKey = termMap[headingText];
+        
+        const input = (
+             <input
+                type="text"
+                value={headingText}
+                onChange={(e) => onUpdate({ ...block.content, text: e.target.value })}
+                className={`${sizeClass} font-bold bg-transparent w-full focus:outline-none text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-400`}
+                placeholder="Heading"
+              />
         );
+
+        if (headingKey) {
+            return <HelpTooltip glossaryKey={headingKey}>{input}</HelpTooltip>
+        }
+        return input;
 
       case 'paragraph':
         return (
@@ -58,12 +90,17 @@ export const PortfolioSection: React.FC<PortfolioSectionProps> = ({
         );
 
       case 'callout':
-        return (
-          <div className="border-l-4 border-cyan-400 bg-cyan-500/10 rounded-r-xl p-4">
-             <input type="text" value={block.content.title || ''} onChange={(e) => onUpdate({ ...block.content, title: e.target.value })} placeholder="Callout title" className="w-full bg-transparent font-semibold text-cyan-300 focus:outline-none mb-2"/>
-            <textarea value={block.content.text || ''} onChange={(e) => onUpdate({ ...block.content, text: e.target.value })} placeholder="Callout text..." className="w-full bg-transparent text-gray-300 focus:outline-none resize-none min-h-[60px]"/>
-          </div>
-        );
+          const calloutTitle = block.content.title || '';
+          const calloutKey = termMap[calloutTitle];
+          return (
+              <div className="border-l-4 border-cyan-400 bg-cyan-500/10 rounded-r-xl p-4">
+                  <div className="flex items-center gap-2">
+                     <input type="text" value={calloutTitle} onChange={(e) => onUpdate({ ...block.content, title: e.target.value })} placeholder="Callout title" className="w-full bg-transparent font-semibold text-cyan-300 focus:outline-none"/>
+                     {calloutKey && <HelpTooltip glossaryKey={calloutKey} />}
+                  </div>
+                  <textarea value={block.content.text || ''} onChange={(e) => onUpdate({ ...block.content, text: e.target.value })} placeholder="Callout text..." className="w-full bg-transparent text-gray-300 focus:outline-none resize-none min-h-[60px] mt-2"/>
+              </div>
+          );
 
       case 'columns':
         return (

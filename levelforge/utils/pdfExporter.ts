@@ -1,5 +1,6 @@
 import * as jspdf from 'jspdf';
-import type { Block, GeneratedAsset } from '../types/portfolio';
+import type { Block, GeneratedAsset, ChecklistState } from '../types/portfolio';
+import { checklistData } from '../data/checklistItems';
 
 // A debounced function to avoid generating PDFs multiple times on rapid clicks
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
@@ -14,7 +15,12 @@ function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (.
     };
 }
 
-const exportToPdfInternal = async (blocks: Block[], images: GeneratedAsset[], levelName: string): Promise<void> => {
+const exportToPdfInternal = async (
+    blocks: Block[], 
+    images: GeneratedAsset[], 
+    levelName: string,
+    checklistState: ChecklistState
+): Promise<void> => {
     const doc = new jspdf.jsPDF({
         orientation: 'p',
         unit: 'px',
@@ -46,7 +52,8 @@ const exportToPdfInternal = async (blocks: Block[], images: GeneratedAsset[], le
             doc.text(`Page ${i}`, pageWidth - margin, pageHeight - 15, { align: 'right' });
         }
     };
-
+    
+    // Render Portfolio Blocks
     for (const block of blocks) {
         switch (block.type) {
             case 'heading_1':
@@ -125,7 +132,48 @@ const exportToPdfInternal = async (blocks: Block[], images: GeneratedAsset[], le
                 break;
         }
     }
+
+    // Add Checklist Page
+    doc.addPage();
+    cursorY = margin;
+    addHeaderFooter();
     
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor(20, 20, 20);
+    doc.text('Design Checklist', pageWidth / 2, cursorY, { align: 'center' });
+    cursorY += 30;
+
+    const allItems = checklistData.flatMap(c => c.items);
+    const checkedCount = Object.values(checklistState).filter(Boolean).length;
+    const completionPercentage = Math.round((checkedCount / allItems.length) * 100);
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Completion: ${completionPercentage}%`, margin, cursorY);
+    cursorY += 20;
+    
+    for (const category of checklistData) {
+        addPageIfNeeded(30 + category.items.length * 15);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(50, 50, 50);
+        doc.text(category.title, margin, cursorY);
+        cursorY += 18;
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        for (const item of category.items) {
+            addPageIfNeeded(15);
+            const isChecked = checklistState[item.id];
+            doc.setTextColor(isChecked ? 150 : 80);
+            doc.text(`[${isChecked ? 'x' : ' '}] ${item.label}`, margin + 10, cursorY);
+            cursorY += 15;
+        }
+        cursorY += 10;
+    }
+
+
     // Add images on a new page
     doc.addPage();
     cursorY = margin;

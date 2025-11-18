@@ -5,7 +5,7 @@ export type IconName =
   | 'grid' | 'plus' | 'circle' | 'line' | 'ruler'
   | 'bold' | 'italic' | 'code' | 'link' | 'quote' 
   | 'list' | 'list-ordered' | 'heading1' | 'heading2'
-  | 'download' | 'compare' | 'undo' | 'trash'
+  | 'download' | 'compare' | 'undo' | 'trash' | 'help'
   // Genre Icons
   | 'general' | 'fps' | 'platformer' | 'puzzle' 
   | 'racing' | 'open-world' | 'horror' | 'dropdown';
@@ -41,6 +41,7 @@ export const Icon: React.FC<IconProps> = ({ name, className }) => {
     compare: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
     undo: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 7-7m8 14l7-7-7-7" /></svg>,
     trash: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+    help: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
     // Genre Icons
     general: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M10 3v18M14 3v18" /></svg>,
     fps: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4m0 8v4m-8-4h4m8 0h4m-8-8a8 8 0 100 16 8 8 0 000-16z" /></svg>,

@@ -181,3 +181,33 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
 }
+
+// ============================================
+// Design Checklist Types
+// ============================================
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+}
+
+export interface ChecklistCategory {
+  title: string;
+  items: ChecklistItem[];
+}
+
+export type ChecklistState = Record<string, boolean>;
+
+// ============================================
+// Design Challenge Types
+// ============================================
+
+export type ChallengeStatus = 'suggested' | 'accepted' | 'completed';
+
+export interface DesignChallenge {
+  id: string;
+  title: string;
+  description: string;
+  category: 'Navigation' | 'Pacing' | 'Combat' | 'Atmosphere' | 'General';
+  status: ChallengeStatus;
+}

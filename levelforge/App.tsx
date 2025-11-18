@@ -6,10 +6,12 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { generateVisualAsset } from './services/geminiService';
 import { analyzeAndGeneratePortfolio } from './lib/ai/portfolioGenerator';
 import { analyzeAndComparePortfolios } from './lib/ai/comparisonAnalyzer';
-import type { Block, GeneratedAsset, ComparisonPayload, ComparisonResult } from './types/portfolio';
+import { generateDesignChallenges } from './lib/ai/challengeGenerator';
+import type { Block, GeneratedAsset, ComparisonPayload, ComparisonResult, ChecklistState, DesignChallenge } from './types/portfolio';
 import { Icon } from './components/Icon';
 import { processFileUpload } from './utils/fileProcessor';
 import { exportToPdf } from './utils/pdfExporter';
+import { HelpPanel } from './components/HelpPanel';
 
 type AppMode = 'single' | 'compare';
 
@@ -23,6 +25,7 @@ const App: React.FC = () => {
   
   // State for single mode
   const [portfolioBlocks, setPortfolioBlocks] = useState<Block[] | null>(null);
+  const [challenges, setChallenges] = useState<DesignChallenge[] | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedAsset[]>([]);
   const [genre, setGenre] = useState<string>('general');
 
@@ -32,6 +35,9 @@ const App: React.FC = () => {
   // PDF Generation State
   const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   
+  // Help Panel State
+  const [isHelpPanelOpen, setIsHelpPanelOpen] = useState(false);
+
   const editorRef = useRef<EditorWorkspaceHandle>(null);
 
   const resetState = () => {
@@ -42,6 +48,7 @@ const App: React.FC = () => {
     setProgress(0);
     setError(null);
     setPortfolioBlocks(null);
+    setChallenges(null);
     setGeneratedImages([]);
     setComparisonResult(null);
     setIsGeneratingPdf(false);
@@ -64,11 +71,22 @@ const App: React.FC = () => {
       // Step 2: AI Analysis
       setLoadingMessage('🔍 Analyzing using genre-specific framework...');
       setProgress(15);
-      const analysisResult = await analyzeAndGeneratePortfolio(base64, mimeType, selectedGenre);
-      setPortfolioBlocks(analysisResult);
+      const { blocks, analysisJson } = await analyzeAndGeneratePortfolio(base64, mimeType, selectedGenre);
+      setPortfolioBlocks(blocks);
       console.log('✓ Professional analysis complete');
+      
+      // Step 2.5: Generate Challenges
+      setLoadingMessage('💡 Generating actionable design challenges...');
+      setProgress(25);
+      const generatedChallenges = await generateDesignChallenges(analysisJson);
+      setChallenges(generatedChallenges.map((c, i) => ({
+        ...c,
+        id: `challenge-${i}`,
+        status: 'suggested'
+      })));
+      console.log(`✓ ${generatedChallenges.length} challenges generated`);
 
-      const visualInput = isVisual ? { base64Data: base64, mimeType } : { analysisData: analysisResult };
+      const visualInput = isVisual ? { base64Data: base64, mimeType } : { analysisData: analysisJson };
       
       const assetsToGenerate: ('Top-down whitebox map' | 'Player flow diagram' | 'Combat analysis overlay' | 'Flow & Loops Overlay')[] = [
         'Top-down whitebox map', 'Player flow diagram', 'Combat analysis overlay', 'Flow & Loops Overlay'
@@ -140,6 +158,7 @@ const App: React.FC = () => {
     setProgress(0);
     setGeneratedImages([]);
     setPortfolioBlocks(null);
+    setChallenges(null);
     setComparisonResult(null);
 
     try {
@@ -163,8 +182,9 @@ const App: React.FC = () => {
     setIsGeneratingPdf(true);
     try {
         const annotatedImages = await editorRef.current.getAnnotatedImages();
+        const checklistState = editorRef.current.getChecklistState();
         const levelName = portfolioBlocks.find(b => b.type === 'heading_1')?.content.text || 'Analysis';
-        await exportToPdf(portfolioBlocks, annotatedImages, levelName);
+        await exportToPdf(portfolioBlocks, annotatedImages, levelName, checklistState);
     } catch (err) {
         console.error("PDF Generation Error:", err);
         setError(err instanceof Error ? err.message : 'Could not generate PDF.');
@@ -189,27 +209,36 @@ const App: React.FC = () => {
              <Icon name="logo" className="h-10 w-10 text-cyan-400" />
              <h1 className="text-3xl font-bold text-white tracking-wider">LevelForge</h1>
            </div>
-           {hasResult && (
-             <div className="flex items-center space-x-2">
-                {portfolioBlocks && (
-                    <button
-                        onClick={handleDownloadPdf}
-                        disabled={isGeneratingPdf}
-                        className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2 disabled:opacity-50"
-                    >
-                        <Icon name="download" className="w-5 h-5" />
-                        <span>{isGeneratingPdf ? 'Generating...' : 'Download PDF'}</span>
-                    </button>
-                )}
-               <button
-                 onClick={resetState}
-                 className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2"
-               >
-                 <Icon name="plus" className="w-5 h-5" />
-                 <span>New Project</span>
-               </button>
-             </div>
-           )}
+           <div className="flex items-center space-x-2">
+                <button
+                    onClick={() => setIsHelpPanelOpen(true)}
+                    className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2"
+                >
+                    <Icon name="help" className="w-5 h-5" />
+                    <span>Learn More</span>
+                </button>
+               {hasResult && (
+                 <>
+                    {portfolioBlocks && (
+                        <button
+                            onClick={handleDownloadPdf}
+                            disabled={isGeneratingPdf}
+                            className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2 disabled:opacity-50"
+                        >
+                            <Icon name="download" className="w-5 h-5" />
+                            <span>{isGeneratingPdf ? 'Generating...' : 'Download PDF'}</span>
+                        </button>
+                    )}
+                   <button
+                     onClick={resetState}
+                     className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md hover:bg-white/20 transition-colors duration-300 flex items-center space-x-2"
+                   >
+                     <Icon name="plus" className="w-5 h-5" />
+                     <span>New Project</span>
+                   </button>
+                 </>
+               )}
+            </div>
         </header>
 
         {isLoading ? (
@@ -231,6 +260,7 @@ const App: React.FC = () => {
             ref={editorRef}
             initialBlocks={portfolioBlocks} 
             generatedImages={generatedImages} 
+            initialChallenges={challenges}
           />
         ) : comparisonResult ? (
           <ComparisonView result={comparisonResult} />
@@ -246,6 +276,7 @@ const App: React.FC = () => {
           />
         )}
       </main>
+      <HelpPanel isOpen={isHelpPanelOpen} onClose={() => setIsHelpPanelOpen(false)} />
     </div>
   );
 };

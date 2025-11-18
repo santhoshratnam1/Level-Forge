@@ -21,7 +21,7 @@ export async function analyzeAndGeneratePortfolio(
   imageData: string,
   mimeType: string,
   genre: string
-): Promise<Block[]> {
+): Promise<{ blocks: Block[], analysisJson: any }> {
   
   const template = genres[genre] || genres['general'];
   const { analysisPrompt, schema } = template;
@@ -55,7 +55,10 @@ export async function analyzeAndGeneratePortfolio(
       throw new Error('AI response missing required sections');
     }
 
-    return convertToPortfolioBlocks(analysis);
+    return {
+        blocks: convertToPortfolioBlocks(analysis),
+        analysisJson: analysis
+    };
   } catch (error) {
     console.error('Portfolio generation error:', error);
     
