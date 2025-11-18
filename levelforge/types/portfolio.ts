@@ -72,7 +72,7 @@ export function createParagraph(text: string): Block {
 
 export function createBulletList(items: string[]): Block[] {
     // For simplicity, we create a single paragraph block with bullet points
-    const text = items.map(item => `- ${item}`).join('\n');
+    const text = items.map(item => `• ${item}`).join('\n');
     return [createParagraph(text)];
 }
 
@@ -134,4 +134,50 @@ function generateId(): string {
 export interface GeneratedAsset {
   title: string;
   url: string; // base64 data URL
+}
+
+// ============================================
+// Annotation Types
+// ============================================
+export type AnnotationTool = 'arrow' | 'text' | 'brush' | 'rect' | 'circle' | 'line';
+
+export interface Point {
+    x: number;
+    y: number;
+}
+
+export type Annotation = { id: string; color: string; tool: AnnotationTool } & (
+    | { tool: 'rect' | 'circle' | 'arrow' | 'line'; start: Point; end: Point }
+    | { tool: 'brush'; points: Point[] }
+    | { tool: 'text'; position: Point; text: string; }
+);
+
+
+// ============================================
+// Comparison Mode Types
+// ============================================
+
+export interface ComparisonPayload {
+    levels: {
+        id: string;
+        base64: string;
+        mimeType: string;
+    }[];
+}
+
+export interface ComparisonResult {
+    portfolios: {
+        id: string;
+        blocks: Block[];
+    }[];
+    comparisonAnalysis: Block[];
+}
+
+// ============================================
+// Chat Assistant Types
+// ============================================
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
 }

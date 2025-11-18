@@ -4,7 +4,11 @@ export type IconName =
   | 'logo' | 'upload' | 'arrow' | 'text' | 'brush' | 'rect' 
   | 'grid' | 'plus' | 'circle' | 'line' | 'ruler'
   | 'bold' | 'italic' | 'code' | 'link' | 'quote' 
-  | 'list' | 'list-ordered' | 'heading1' | 'heading2';
+  | 'list' | 'list-ordered' | 'heading1' | 'heading2'
+  | 'download' | 'compare' | 'undo' | 'trash' | 'settings'
+  // Genre Icons
+  | 'general' | 'fps' | 'platformer' | 'puzzle' 
+  | 'racing' | 'open-world' | 'horror' | 'dropdown';
 
 interface IconProps {
   name: IconName;
@@ -33,6 +37,20 @@ export const Icon: React.FC<IconProps> = ({ name, className }) => {
     'list-ordered': <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 6h12M8 12h12M8 18h12M4 6h1v1H4V6zm0 5h1v1H4v-1zm0 5h1v1H4v-1z" /></svg>,
     heading1: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 4v16M13 4v16m-3-16h6m-6 8h6m-6 8h6M20 9h-2V7h2v2z" /></svg>,
     heading2: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 4v16M13 4v16m-3-16h6m-6 8h6m-6 8h6M20 11h-2a2 2 0 00-2 2v2a2 2 0 002 2h2v-4z" /></svg>,
+    download: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>,
+    compare: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
+    undo: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 7-7m8 14l7-7-7-7" /></svg>,
+    trash: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>,
+    settings: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+    // Genre Icons
+    general: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M10 3v18M14 3v18" /></svg>,
+    fps: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v4m0 8v4m-8-4h4m8 0h4m-8-8a8 8 0 100 16 8 8 0 000-16z" /></svg>,
+    platformer: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12a2 2 0 100-4 2 2 0 000 4zm0 0c-2.07 0-4.1.6-5.8 1.7-1.7.9-3.2 2.3-3.2 4.3h18c0-2-1.5-3.4-3.2-4.3C16.1 12.6 14.07 12 12 12zM9 8a3 3 0 013-3V3a5 5 0 00-5 5h2z" /></svg>,
+    puzzle: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" /></svg>,
+    racing: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v16h16V4H4zm2 2h2v2H6V6zm0 4h2v2H6v-2zm0 4h2v2H6v-2zm4-4h8v2h-8v-2zm0 4h8v2h-8v-2zm-4-8h12v2H6V6z" /></svg>,
+    'open-world': <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0l-3-3m3 3l3-3m-3-12v6m-3-3h6" /></svg>,
+    horror: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2c-3.87 0-7 3.13-7 7 0 2.25 1.06 4.25 2.7 5.56.09.08.18.17.26.25.1.1.18.2.28.3.4.4.8.8 1.2 1.2.4.4.8.8 1.2 1.2.1.1.2.18.3.28.08.08.17.17.25.26C9.75 20.94 10.75 22 12 22s2.25-1.06 3.56-2.7c.08-.09.17-.18.26-.26.1-.1.18-.2.28-.3.4-.4.8-.8 1.2-1.2.4-.4.8-.8 1.2-1.2.1-.1.2-.18.3-.28.08-.08.17-.17.25-.26C20.94 13.25 22 11.25 22 9c0-3.87-3.13-7-7-7zM9 13a1 1 0 11-2 0 1 1 0 012 0zm8 0a1 1 0 11-2 0 1 1 0 012 0z" /></svg>,
+    dropdown: <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
   };
 
   return <div className={className}>{icons[name]}</div>;

@@ -46,12 +46,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   return (
-    <div className="border border-white/10 rounded-xl overflow-hidden bg-black/20">
-      <div className="flex items-center gap-1 p-1 border-b border-white/10 bg-white/5">
+    <div className="border border-[var(--border-primary)] rounded-xl overflow-hidden bg-[var(--surface-primary)]">
+      <div className="flex items-center gap-1 p-1 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)]">
         <ToolbarButton icon="heading2" onClick={() => applyFormat('h2')} title="Heading" />
         <ToolbarButton icon="bold" onClick={() => applyFormat('bold')} title="Bold" />
         <ToolbarButton icon="italic" onClick={() => applyFormat('italic')} title="Italic" />
-        <div className="w-px h-5 bg-white/10 mx-1" />
+        <div className="w-px h-5 bg-[var(--border-primary)] mx-1" />
         <ToolbarButton icon="list" onClick={() => applyFormat('list')} title="Bullet List" />
         <ToolbarButton icon="quote" onClick={() => applyFormat('quote')} title="Quote" />
       </div>
@@ -60,7 +60,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full min-h-[150px] p-3 bg-transparent text-gray-200 focus:outline-none resize-y"
+        className="w-full min-h-[150px] p-3 bg-transparent text-[var(--text-primary)] focus:outline-none resize-y"
       />
     </div>
   );
@@ -74,9 +74,9 @@ const ToolbarButton: React.FC<{
   <button
     onClick={onClick}
     title={title}
-    className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+    className="p-2 rounded-lg hover:bg-[var(--surface-primary)] transition-colors"
     type="button"
   >
-    <Icon name={icon} className="w-4 h-4 text-gray-400" />
+    <Icon name={icon} className="w-4 h-4 text-[var(--text-secondary)]" />
   </button>
 );

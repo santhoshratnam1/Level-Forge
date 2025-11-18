@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import type { Block } from '@/types/portfolio';
 import { 
   createHeading, 
@@ -8,178 +8,41 @@ import {
   createDivider,
   createColumns
 } from '@/types/portfolio';
+import { genres } from './genreTemplates';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
-const portfolioSchema = {
-  type: Type.OBJECT,
-  properties: {
-    title: { type: Type.STRING, description: "Clear, descriptive title of the level" },
-    
-    planning: {
-      type: Type.OBJECT,
-      properties: {
-        restrictions: { 
-          type: Type.ARRAY, 
-          items: { type: Type.STRING },
-          description: "Constraints: budget, mechanics, technical limits, narrative requirements"
-        },
-        goals: { 
-          type: Type.ARRAY, 
-          items: { type: Type.STRING },
-          description: "Design goals: theme, player fantasy, emotional tone, specific challenges"
-        },
-        context: { 
-          type: Type.STRING,
-          description: "Where this fits in game progression, unique aspects vs other levels"
-        },
-        golden_path: { 
-          type: Type.STRING,
-          description: "The intended primary route through the level in 2-3 sentences"
-        }
-      },
-      required: ['restrictions', 'goals', 'context', 'golden_path']
-    },
+// FIX: Export a general schema and prompt for use in other modules like the comparison analyzer.
+export const portfolioSchema = genres.general.schema;
+export const portfolioAnalysisPrompt = genres.general.analysisPrompt;
 
-    navigation: {
-      type: Type.OBJECT,
-      properties: {
-        landmarks: { 
-          type: Type.ARRAY, 
-          items: { type: Type.STRING },
-          description: "Macro (large), Meso (medium), Micro (small) landmarks for orientation"
-        },
-        signposting: { 
-          type: Type.ARRAY, 
-          items: { type: Type.STRING },
-          description: "Visual/audio cues guiding player direction"
-        },
-        visual_language: {
-          type: Type.STRING,
-          description: "Consistent use of colors, shapes, lighting to communicate gameplay"
-        }
-      },
-      required: ['landmarks', 'signposting', 'visual_language']
-    },
-
-    pacing: {
-      type: Type.OBJECT,
-      properties: {
-        flow_structure: {
-          type: Type.STRING,
-          description: "How the level flows: linear, hub-based, open, etc."
-        },
-        gates_valves: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Gates (blocks progress until condition met) and Valves (prevent backtracking)"
-        },
-        loops_shortcuts: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Loop paths and shortcuts that connect areas"
-        },
-        intensity_curve: {
-          type: Type.STRING,
-          description: "How tension/action rises and falls throughout the level"
-        }
-      },
-      required: ['flow_structure', 'gates_valves', 'loops_shortcuts', 'intensity_curve']
-    },
-
-    combat: {
-      type: Type.OBJECT,
-      properties: {
-        encounter_design: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Key combat encounters and their strategic purpose"
-        },
-        cover_layout: {
-          type: Type.STRING,
-          description: "Distribution and types of cover (full/half, destructible, etc.)"
-        },
-        tactical_elements: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "High ground, flanking routes, choke points, sightlines"
-        }
-      },
-      required: ['encounter_design', 'cover_layout', 'tactical_elements']
-    },
-
-    experience_enhancement: {
-      type: Type.OBJECT,
-      properties: {
-        atmosphere: {
-          type: Type.STRING,
-          description: "Mood created through lighting, color palette, audio, weather"
-        },
-        narrative_integration: {
-          type: Type.STRING,
-          description: "How level tells story through environment, events, discoveries"
-        },
-        memorable_moments: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Stand-out beats: reveals, setpieces, surprises"
-        }
-      },
-      required: ['atmosphere', 'narrative_integration', 'memorable_moments']
-    },
-
-    strengths_opportunities: {
-      type: Type.OBJECT,
-      properties: {
-        what_works: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Successful design elements"
-        },
-        improvement_areas: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING },
-          description: "Constructive suggestions for enhancement"
-        }
-      },
-      required: ['what_works', 'improvement_areas']
-    }
-  },
-  required: ['title', 'planning', 'navigation', 'pacing', 'combat', 'experience_enhancement', 'strengths_opportunities']
-};
 
 export async function analyzeAndGeneratePortfolio(
-  imageData: string,
-  mimeType: string
+  images: { imageData: string; mimeType: string }[],
+  genre: string
 ): Promise<Block[]> {
   
-  const prompt = `You are a senior level designer conducting a professional portfolio-quality analysis using the "In Pursuit of Better Levels" framework.
+  const template = genres[genre] || genres['general'];
+  const { analysisPrompt, schema } = template;
 
-Analyze this game level image in comprehensive detail. Focus on:
+  const imageParts = images.map(img => ({
+    inlineData: { mimeType: img.mimeType, data: img.imageData }
+  }));
 
-**PLANNING**: Identify design restrictions, goals, and context. Describe the golden path.
-**NAVIGATION & DISTINCTION**: Identify landmarks (macro/meso/micro), signposting methods, and visual language consistency.
-**PACING**: Describe flow structure, gates/valves, loops/shortcuts, and the intensity curve.
-**COMBAT DESIGN**: Analyze encounter placement, cover distribution, and tactical elements (high ground, flanking, sightlines).
-**EXPERIENCE ENHANCEMENT**: Describe atmosphere, narrative integration, and memorable moments.
-**CRITICAL ANALYSIS**: What works well? Where could it improve?
-
-Write in a professional but conversational tone. Be specific and detailed. Reference actual visible elements in the level. Provide actionable insights.
-
-Respond ONLY with valid JSON matching the schema. Each string field should be 2-4 sentences. Each array should have 3-5 detailed items.`;
+  const multiImagePrompt = `You are a senior level designer conducting a professional portfolio-quality analysis using the "In Pursuit of Better Levels" framework. Analyze these ${images.length} screenshots which are all from the SAME level, providing a holistic view. Synthesize information from all images to understand the complete space. Provide actionable insights. Respond ONLY with valid JSON matching the schema. Each string field should be 2-4 sentences. Each array should have 3-5 detailed items.`
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: {
         parts: [
-          { inlineData: { mimeType, data: imageData } },
-          { text: prompt }
+          ...imageParts,
+          { text: multiImagePrompt }
         ]
       },
       config: {
         responseMimeType: 'application/json',
-        responseSchema: portfolioSchema,
+        responseSchema: schema,
         thinkingConfig: { thinkingBudget: 32768 }
       }
     });
@@ -193,11 +56,22 @@ Respond ONLY with valid JSON matching the schema. Each string field should be 2-
 
     const analysis = JSON.parse(responseText);
 
-    if (!analysis.planning || !analysis.navigation) {
+    if (!analysis.planning) {
       throw new Error('AI response missing required sections');
     }
+    
+    // Prepend a block indicating multi-image analysis
+    const multiImageContextBlock = createCallout(
+        `This analysis was generated from ${images.length} different screenshots to provide a more comprehensive and holistic understanding of the level.`,
+        '🔬 Multi-View Analysis'
+    );
 
-    return convertToPortfolioBlocks(analysis);
+    const portfolioBlocks = convertToPortfolioBlocks(analysis);
+    
+    // Insert the context block after the title and divider
+    portfolioBlocks.splice(2, 0, multiImageContextBlock);
+
+    return portfolioBlocks;
   } catch (error) {
     console.error('Portfolio generation error:', error);
     
@@ -213,7 +87,8 @@ Respond ONLY with valid JSON matching the schema. Each string field should be 2-
   }
 }
 
-function convertToPortfolioBlocks(analysis: any): Block[] {
+// FIX: Export this function so it can be imported and used in other modules like comparisonAnalyzer.ts
+export function convertToPortfolioBlocks(analysis: any): Block[] {
   const blocks: Block[] = [];
 
   // Title
@@ -299,30 +174,59 @@ function convertToPortfolioBlocks(analysis: any): Block[] {
   
   blocks.push(createDivider());
 
-  // ⚔️ COMBAT DESIGN
-  blocks.push(createHeading('⚔️ Combat Design', 2));
-  
+  // GENRE-SPECIFIC SECTION
   if (analysis.combat) {
+    blocks.push(createHeading('⚔️ Combat Design (FPS)', 2));
     const c = analysis.combat;
-    
     if (c.encounter_design?.length > 0) {
       blocks.push(createHeading('Encounter Design', 3));
       blocks.push(...createBulletList(c.encounter_design));
     }
-    
     if (c.cover_layout) {
       blocks.push(createHeading('Cover & Layout', 3));
       blocks.push(createParagraph(c.cover_layout));
     }
-    
     if (c.tactical_elements?.length > 0) {
       blocks.push(createHeading('Tactical Elements', 3));
       blocks.push(...createBulletList(c.tactical_elements));
     }
+    blocks.push(createDivider());
   }
   
-  blocks.push(createDivider());
+  if (analysis.platforming_challenges) {
+      blocks.push(createHeading('🏃 Platforming Challenges', 2));
+      const p = analysis.platforming_challenges;
+      if (p.core_mechanics?.length > 0) {
+          blocks.push(createHeading('Core Mechanics', 3));
+          blocks.push(...createBulletList(p.core_mechanics));
+      }
+      if (p.hazard_design?.length > 0) {
+          blocks.push(createHeading('Hazard & Obstacle Design', 3));
+          blocks.push(...createBulletList(p.hazard_design));
+      }
+      if (p.skill_curve) {
+          blocks.push(createCallout(p.skill_curve, '📈 Skill Curve'));
+      }
+      blocks.push(createDivider());
+  }
 
+  if (analysis.puzzle_design) {
+      blocks.push(createHeading('🧩 Puzzle Design', 2));
+      const p = analysis.puzzle_design;
+      if (p.puzzle_mechanics?.length > 0) {
+          blocks.push(createHeading('Puzzle Mechanics', 3));
+          blocks.push(...createBulletList(p.puzzle_mechanics));
+      }
+      if (p.hinting_signposting) {
+          blocks.push(createHeading('Hinting & Signposting', 3));
+          blocks.push(createParagraph(p.hinting_signposting));
+      }
+      if (p.solution_paths) {
+          blocks.push(createCallout(p.solution_paths, '💡 Solution Paths'));
+      }
+      blocks.push(createDivider());
+  }
+  
   // 🎨 EXPERIENCE ENHANCEMENT
   blocks.push(createHeading('🎨 Experience Enhancement', 2));
   
@@ -346,6 +250,44 @@ function convertToPortfolioBlocks(analysis: any): Block[] {
   }
   
   blocks.push(createDivider());
+  
+  // 🧠 PLAYER PSYCHOLOGY
+  blocks.push(createHeading('🧠 Player Psychology', 2));
+  if (analysis.player_psychology) {
+    const psy = analysis.player_psychology;
+    if (psy.cognitive_load) {
+      blocks.push(createHeading('Cognitive Load', 3));
+      blocks.push(createParagraph(psy.cognitive_load));
+    }
+    if (psy.risk_reward?.length > 0) {
+      blocks.push(createHeading('Risk vs. Reward', 3));
+      blocks.push(...createBulletList(psy.risk_reward));
+    }
+    if (psy.emotional_journey) {
+      blocks.push(createCallout(psy.emotional_journey, '🎢 Emotional Journey'));
+    }
+  }
+  blocks.push(createDivider());
+
+  // 📚 NARRATIVE & THEME
+  blocks.push(createHeading('📚 Narrative & Theme', 2));
+  if (analysis.narrative_theme) {
+    const nar = analysis.narrative_theme;
+    if (nar.environmental_storytelling) {
+      blocks.push(createHeading('Environmental Storytelling', 3));
+      blocks.push(createParagraph(nar.environmental_storytelling));
+    }
+    if (nar.thematic_consistency) {
+      blocks.push(createHeading('Thematic Consistency', 3));
+      blocks.push(createParagraph(nar.thematic_consistency));
+    }
+    if (nar.symbolism?.length > 0) {
+      blocks.push(createHeading('Symbolism & Motifs', 3));
+      blocks.push(...createBulletList(nar.symbolism));
+    }
+  }
+  blocks.push(createDivider());
+
 
   // ✅ ANALYSIS
   blocks.push(createHeading('✅ Critical Analysis', 2));

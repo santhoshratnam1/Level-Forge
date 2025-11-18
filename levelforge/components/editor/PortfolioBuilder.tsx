@@ -35,11 +35,11 @@ export const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ initialBlock
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-white">Portfolio Editor</h2>
+        <h2 className="text-2xl font-bold">Portfolio Editor</h2>
         <div className="flex gap-3">
           <button 
             onClick={() => onSave(blocks)}
-            className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl hover:shadow-[0_0_20px_rgba(72,187,255,0.5)] transition-all flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white rounded-xl hover:shadow-[0_0_20px_var(--accent-primary)]/50 transition-all flex items-center gap-2"
           >
             <Icon name="logo" className="w-4 h-4" />
             Save
@@ -47,7 +47,7 @@ export const PortfolioBuilder: React.FC<PortfolioBuilderProps> = ({ initialBlock
         </div>
       </div>
 
-      <GlassCard className="p-4 sm:p-8">
+      <GlassCard className="p-[var(--padding-card)]">
         <div className="space-y-8">
           {blocks.map((block) => (
             <PortfolioSection
